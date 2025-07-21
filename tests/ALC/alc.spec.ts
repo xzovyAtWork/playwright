@@ -1,5 +1,5 @@
 //@ts-check
-import { test, expect, Page, FrameLocator, defineConfig} from '@playwright/test';
+import { test, expect, Page, Context, defineConfig} from '@playwright/test';
 import {devices} from '../../alcDevices';
 require('log-timestamp')(()=>`${new Date().toLocaleTimeString()}`);
 
@@ -14,6 +14,7 @@ const {sf1, sf2,sf3, sf4, sf5, sf6} = devices;
 
 
 let page: Page;
+let context: Context;
 let actionContent;
 
 test.describe.configure({mode: "parallel"})
@@ -116,7 +117,9 @@ test('download program', async ({ browser }) => {
 test.beforeAll('log in', async ({ browser }) => {
 
 	console.log('logging in to ALC...')
-	page = await browser.newPage({bypassCSP: true});
+	  context = await browser.newContext({ bypassCSP: true });
+  page = await context.newPage();
+
 	page.goto('http://localhost:8080');
 	await page.locator('#nameInput').fill('silent');
 	await page.locator('#pass').fill('password123');
@@ -142,7 +145,7 @@ test.beforeAll('navigate to I/O points', async () => {
 });
 test.afterAll(async () => {
 	await page.waitForTimeout(500)
-	page.close();
+	await page.close();
 })
 test.beforeEach(async ({ }, testInfo) => {
 	console.log(`Started ${testInfo.title}...`);
