@@ -140,7 +140,8 @@ test.beforeAll('navigate to I/O points', async () => {
 	})
 	console.log('Auto-Accept on')
 });
-test.afterAll(() => {
+test.afterAll(async () => {
+	await page.waitForTimeout(500)
 	page.close();
 })
 test.beforeEach(async ({ }, testInfo) => {
