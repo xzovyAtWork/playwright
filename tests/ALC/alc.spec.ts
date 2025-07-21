@@ -334,7 +334,7 @@ test.describe('motor section', async () => {
 		test.setTimeout(0);
 		await commandBinaryDevice(vfdEnable, 'Enable')
 		const getAirflowReading = async () => {
-			z parseFloat(await actionContent.locator("#bodyTable").locator(`[primid="prim_${airflow.feedbackValue}"]`).textContent())
+			return parseFloat(await actionContent.locator("#bodyTable").locator(`[primid="prim_${airflow.feedbackValue}"]`).textContent())
 		}
 		await testAnalogIO(vfd, 0);
 		console.log(await getAirflowReading())
