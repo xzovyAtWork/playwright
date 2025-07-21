@@ -1,5 +1,5 @@
 //@ts-check
-import { test, expect, Page, Context, defineConfig} from '@playwright/test';
+import { test, expect, Page, Context} from '@playwright/test';
 import {devices} from '../../alcDevices';
 require('log-timestamp')(()=>`${new Date().toLocaleTimeString()}`);
 
@@ -17,7 +17,7 @@ let page: Page;
 let context: Context;
 let actionContent;
 
-test.describe.configure({mode: "parallel"})
+
 async function commandAnalogDevice(device, value: number){
 	const { lockedValue } = device
 	const currentLockedValue = await parseInt(actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).locator('span').first().textContent());
@@ -96,6 +96,49 @@ async function testBinaryInput(device, state1, state2){
 	console.log(`${device.name}: ${state2}`)
 }
 
+
+test.describe.configure({mode: "parallel"})
+test.beforeAll('log in', async ({ browser }) => {
+
+	console.log('logging in to ALC...')
+	context = await browser.newContext({ bypassCSP: true });
+  	page = await context.newPage();
+
+	page.goto('http://localhost:8080');
+	await page.locator('#nameInput').fill('silent');
+	await page.locator('#pass').fill('password123');
+	await page.getByRole("button", { name: 'Log in' }).click();
+	console.log("Logged in to ALC");
+
+})
+test.beforeAll('navigate to I/O points', async () => {
+	const ioPoints = page.locator('#facetContent').contentFrame().getByText("I/O Points")
+	await ioPoints.click();
+	actionContent = page.locator("#actionContent").contentFrame();
+});
+test.beforeAll('setup auto click', async () => {
+	await page.evaluate(()=>{
+		let  setUpObserver = () => {
+			let acceptNode = document.querySelector("#MainBarTR > td.actionSection.fill-horz.barBg").children[1];
+			let cb = () => handleAcceptButton();
+			let autoAccept = new MutationObserver(cb);
+			let config = { attributes: true, childList: true, subtree: true };
+			autoAccept.observe(acceptNode, config);
+		}
+		setUpObserver();
+	})
+})
+test.afterAll(async () => {
+	await page.waitForTimeout(500)
+	await page.close();
+	await context.close();
+})
+test.beforeEach(async ({ }, testInfo) => {
+	console.log(`Started ${testInfo.title}...`);
+})
+test.afterEach(async ({ }, testInfo) => {
+	console.log(`✅ Completed test: ${testInfo.title}`);
+});
 test('download program', async ({ browser }) => {
 	// test.describe.configure({retries: 3})
 	test.setTimeout(10 * 60000)
@@ -114,45 +157,6 @@ test('download program', async ({ browser }) => {
 	console.log(text)
 	console.log('program download complete');
 })
-test.beforeAll('log in', async ({ browser }) => {
-
-	console.log('logging in to ALC...')
-	  context = await browser.newContext({ bypassCSP: true });
-  page = await context.newPage();
-
-	page.goto('http://localhost:8080');
-	await page.locator('#nameInput').fill('silent');
-	await page.locator('#pass').fill('password123');
-	await page.getByRole("button", { name: 'Log in' }).click();
-	console.log("Logged in to ALC");
-
-})
-test.beforeAll('navigate to I/O points', async () => {
-	const ioPoints = page.locator('#facetContent').contentFrame().getByText("I/O Points")
-	await ioPoints.click();
-	actionContent = page.locator("#actionContent").contentFrame();
-	await page.evaluate(()=>{
-		let  setUpObserver = () => {
-			let acceptNode = document.querySelector("#MainBarTR > td.actionSection.fill-horz.barBg").children[1];
-			let cb = () => handleAcceptButton();
-			let autoAccept = new MutationObserver(cb);
-			let config = { attributes: true, childList: true, subtree: true };
-			autoAccept.observe(acceptNode, config);
-		}
-		setUpObserver();
-	})
-	console.log('Auto-Accept on')
-});
-test.afterAll(async () => {
-	await page.waitForTimeout(500)
-	await page.close();
-})
-test.beforeEach(async ({ }, testInfo) => {
-	console.log(`Started ${testInfo.title}...`);
-})
-test.afterEach(async ({ }, testInfo) => {
-	console.log(`✅ Completed test: ${testInfo.title}`);
-});
 test('check faults', async () =>{
 	// test.describe.configure({retries: 3})
 	const rows = await actionContent.locator('#bodyTable').locator('tr')
@@ -330,7 +334,7 @@ test.describe('motor section', async () => {
 		}
 	})	
 	test('vfd HOA', async () => {
-		const primid = 1524;
+		test.setTimeout(10 * 60000);
 		await testBinaryInput(vfdHOA, 'Off', 'On');
 	})
 

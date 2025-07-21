@@ -5,7 +5,7 @@ let actionContent: FrameLocator;
 
 function setPage(p: Page) {
   page = p;
-  actionContent = p.locator("#actionContent").contentFrame();; // Replace with actual frame selector
+  actionContent = p.locator("#actionContent").contentFrame();
 }
 
 export { page, actionContent, setPage };

@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { expect, Page, Frame } from '@playwright/test';
 import { page, actionContent } from './context';
 
 async function commandAnalogDevice(device, value: number){
@@ -78,7 +78,6 @@ async function testBinaryInput(device, state1, state2){
 	await expect(actionContent.locator("#bodyTable").locator(`[primid="prim_${feedbackValue}"]`)).toHaveText(state2);
 	console.log(`${device.name}: ${state2}`)
 }
-
 
 export {
 	commandAnalogDevice,
