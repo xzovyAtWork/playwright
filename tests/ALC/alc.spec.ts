@@ -97,7 +97,7 @@ async function testBinaryInput(device, state1, state2){
 }
 
 
-test.describe.configure({mode: "parallel"})
+// test.describe.configure({mode: "parallel"})
 test.beforeAll('log in', async ({ browser }) => {
 
 	console.log('logging in to ALC...')
@@ -130,7 +130,6 @@ test.beforeAll('setup auto click', async () => {
 })
 test.afterAll(async () => {
 	await page.waitForTimeout(500)
-	await page.close();
 	await context.close();
 })
 test.beforeEach(async ({ }, testInfo) => {
@@ -214,6 +213,19 @@ test.describe('low voltage', () => {
 	test('whl', async () => {
 		await testBinaryInput(whl, 'Normal', 'Alarm');
 	})
+
+	test('ma temp', async ()=>{
+		await getAnalogFeedback(maTemp)
+	})
+	test('rh1', async ()=>{
+		await getAnalogFeedback(rh1)
+	})
+	test('rh2', async ()=>{
+		await getAnalogFeedback(rh2)
+	})
+	test('sa temp', async ()=>{
+		await getAnalogFeedback(saTemp)
+	})
 	test('face damper', async () => {
 		test.setTimeout(5 * 60000);
 		await testAnalogIO(faceDamper, 20);
@@ -227,18 +239,6 @@ test.describe('low voltage', () => {
 		await testAnalogIO(bypassDamper, 50);
 		await testAnalogIO(bypassDamper, 20);
 		await commandAnalogDevice(bypassDamper, 100)
-	})
-	test('ma temp', async ()=>{
-		await getAnalogFeedback(maTemp)
-	})
-	test('rh1', async ()=>{
-		await getAnalogFeedback(rh1)
-	})
-	test('rh2', async ()=>{
-		await getAnalogFeedback(rh2)
-	})
-	test('sa temp', async ()=>{
-		await getAnalogFeedback(saTemp)
 	})
 })
 test.describe('evap section', async () => {
