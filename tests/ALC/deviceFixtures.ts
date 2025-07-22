@@ -21,6 +21,8 @@ export const test = base.extend<{
     await page.locator('#nameInput').fill('silent');
     await page.locator('#pass').fill('password123');
     await page.getByRole("button", { name: 'Log in' }).click();
+    const ioPoints = page.locator('#facetContent').contentFrame().getByText("I/O Points")
+    await ioPoints.click();    
     await use(page);
     await context.close();
   },
