@@ -21,27 +21,36 @@ let actionContent;
 async function commandAnalogDevice(device, value: number){
 	const { lockedValue } = device
 	const currentLockedValue = await parseInt(actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).locator('span').first().textContent());
-	if(currentLockedValue !== value){
-		await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).click();
-		await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).fill(`${value}`);
-		await page.keyboard.press("Enter")
-	}else {
-		console.log(`${device.name} ${value}`)
+	try{
+		if(currentLockedValue !== value){
+			await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).click();
+			await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).fill(`${value}`);
+			await page.keyboard.press("Enter")
+		}else {
+			console.log(`${device.name} ${value}`)
+		}
+	}catch(err){
+		console.log(`commanding ${device.name} failed`)
 	}
 }
 async function commandBinaryDevice(device, state){
 	const {lockedValue} = device
 	const currentLockedValue = await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).locator('span').first().textContent();
-	if(currentLockedValue != state){
-		await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).click();
-		try{
-			await actionContent.locator('div.ControlLightDropList-WidgetLightDropList-rowinactive').getByText(state).click();
-		}catch(err){
-			await actionContent.locator('div.ControlLightDropList-WidgetLightDropList-rowinactive').getByText(state).nth(1).click();
-		}
+	try{
 
-	}else{
-		console.log(`${device.name} already ${state}`)
+		if(currentLockedValue != state){
+			await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).click();
+			try{
+				await actionContent.locator('div.ControlLightDropList-WidgetLightDropList-rowinactive').getByText(state).click();
+			}catch(err){
+				await actionContent.locator('div.ControlLightDropList-WidgetLightDropList-rowinactive').getByText(state).nth(1).click();
+			}
+			
+		}else{
+			console.log(`${device.name} already ${state}`)
+		}
+	}catch(err){
+		console.log(`commanding ${device.name} failed`)
 	}
 };
 async function getAnalogFeedback(device){
@@ -241,32 +250,31 @@ test.describe('low voltage', () => {
 		await commandAnalogDevice(bypassDamper, 100)
 	})
 })
+test('fill tank',async() => {
+	test.setTimeout(0)
+	await commandBinaryDevice(fill, 'Open');
+	await commandBinaryDevice(drain, 'Close');
+	await expect(await actionContent.locator("#bodyTable").locator(`[primid="prim_${wol.feedbackValue}"]`)).toHaveText("Normal", {timeout: 10 * 60000})
+	
+})
 test.describe('evap section', async () => {
 	test.describe.configure({ mode: 'serial' });
 	test.beforeEach(async ()=>{
 		await page.waitForLoadState();
 	})
-	test('fill tank',async() => {
-		test.setTimeout(0)
-		await commandBinaryDevice(fill, 'Open');
-		await commandBinaryDevice(drain, 'Close');
-		await expect(await actionContent.locator("#bodyTable").locator(`[primid="prim_${wol.feedbackValue}"]`)).toHaveText("Normal", {timeout: 10 * 60000})
-		
-	})
 	test('sump current switch', async () => {
-		const primid = 1321;
 		await commandBinaryDevice(sump, "On");
 		await testBinaryInput(sump, 'Off', 'On');
 	})
-	
-})
-test.describe('bypass', async () => {
-	test.describe.configure({ mode: 'serial' });
 	test('conductivity', async () => {
 		const conductivityReading = parseFloat(await actionContent.locator("#bodyTable").locator(`[primid="prim_${conductivity.feedbackValue}"]`).textContent());
 		expect(conductivityReading).toBeGreaterThan(100);
 		await getAnalogFeedback(conductivity);
 	})
+	
+})
+test.describe('bypass', async () => {
+	test.describe.configure({ mode: 'serial' });
 	test('bleed', async ()=>{
 		test.setTimeout(6 * 60000)
 		await commandBinaryDevice(bleed, "On");
@@ -298,6 +306,7 @@ test.describe('full water', async () => {
 		test.setTimeout(0);
 		await commandBinaryDevice(fill, 'Open')
 		await commandBinaryDevice(drain, 'Close');
+		console.log('waiting for tank to fill...')
 		await expect(await actionContent.locator("#bodyTable").locator(`[primid="prim_${wol.feedbackValue}"]`)).toHaveText("Normal", {timeout: 10 * 60000})
 		await commandBinaryDevice(sump, 'On');
 		const startValue = await getConductivityValue();
@@ -306,12 +315,12 @@ test.describe('full water', async () => {
 			await commandBinaryDevice(bleed, 'On');
 		}
 		await page.waitForTimeout(30 * 60000);
+		console.log(`cycle complete. Draining tank. Conductivity: ${await getConductivityValue()}`)
 		await commandBinaryDevice(fill, 'Close');
 		await commandBinaryDevice(drain, 'Open');
 		await commandBinaryDevice(sump, 'Off');
 		await commandBinaryDevice(bleed, 'Off');
 		await expect(await actionContent.locator("#bodyTable").locator(`[primid="prim_${wll.feedbackValue}"]`)).toHaveText("Low", {timeout: 10 * 60000})
-		console.log(`cycle complete. Conductivity: ${await getConductivityValue()}`)
 		console.log('Conductivity Readings',conductivityReadings);
 	})
 })
