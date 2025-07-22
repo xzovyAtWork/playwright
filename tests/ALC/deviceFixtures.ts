@@ -22,23 +22,35 @@ export const test = base.extend<{
     await page.locator('#pass').fill('password123');
     await page.getByRole("button", { name: 'Log in' }).click();
     const ioPoints = page.locator('#facetContent').contentFrame().getByText("I/O Points")
-    await ioPoints.click();    
+    await ioPoints.click();
+    await page.evaluate(()=>{
+      let  setUpObserver = () => {
+        let acceptNode = document.querySelector("#MainBarTR > td.actionSection.fill-horz.barBg").children[1];
+        let cb = () => handleAcceptButton();
+        let autoAccept = new MutationObserver(cb);
+        let config = { attributes: true, childList: true, subtree: true };
+        autoAccept.observe(acceptNode, config);
+      }
+      setUpObserver();
+    })    
     await use(page);
     await context.close();
   },
 
   actionContent: async ({ page }, use) => {
-    const frame = await page.locator("#actionContent").contentFrame();
+    const elementHandle = await page.locator('#actionContent').elementHandle();
+    const frame = await elementHandle?.contentFrame();
+    if (!frame) throw new Error('Frame not found');
+    await frame.waitForSelector('#bodyTable');
     await use(frame);
   },
 
   deviceUtils: async ({ page, actionContent }, use) => {
     const deviceUtils: DeviceUtils = {
       async commandAnalogDevice(device, value) {
-        const { lockedValue } = device;
-        const currentLockedValue = parseInt(await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).locator('span').first().textContent());
+        const { lockedValue, commandValue } = device;
         try{
-
+          const currentLockedValue = parseInt(await actionContent.locator("#bodyTable").locator(`[updateid="prim_${commandValue}_ctrlid1"]`).textContent());
           if (currentLockedValue !== value) {
             await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).click();
             await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).fill(`${value}`);

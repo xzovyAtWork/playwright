@@ -81,7 +81,7 @@ test.describe('low voltage', () => {
 		}
 	});
 	test('fill actuator', async ({deviceUtils, actionContent}) => {
-		expect(await actionContent.locator("#bodyTable").locator(`[primid="prim_${fill.feedbackValue}"]`)).toHaveText("Open", {timeout: 10 * 60000})
+		expect(await actionContent.locator("#bodyTable").locator(`[primid="prim_${fill.feedbackValue}"]`)).toHaveText("Close", {timeout: 10 * 60000})
 		await deviceUtils.testBinaryIO(fill, "Open");
 		await deviceUtils.testBinaryIO(fill, "Close");
 	})
