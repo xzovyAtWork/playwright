@@ -37,27 +37,37 @@ export const test = base.extend<{
       async commandAnalogDevice(device, value) {
         const { lockedValue } = device;
         const currentLockedValue = parseInt(await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).locator('span').first().textContent());
-        if (currentLockedValue !== value) {
-          await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).click();
-          await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).fill(`${value}`);
-          await page.keyboard.press("Enter");
-        } else {
-          console.log(`${device.name} ${value}`);
+        try{
+
+          if (currentLockedValue !== value) {
+            await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).click();
+            await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).fill(`${value}`);
+            await page.keyboard.press("Enter");
+          } else {
+            console.log(`${device.name} ${value}`);
+          }
+        }catch(err){
+          console.log(`${device.name} command failed`)
         }
       },
 
       async commandBinaryDevice(device, state) {
         const { lockedValue } = device;
         const currentLockedValue = await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).locator('span').first().textContent();
-        if (currentLockedValue !== state) {
-          await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).click();
-          try {
-            await actionContent.locator('div.ControlLightDropList-WidgetLightDropList-rowinactive').getByText(state).click();
-          } catch {
-            await actionContent.locator('div.ControlLightDropList-WidgetLightDropList-rowinactive').getByText(state).nth(1).click();
+        try{
+
+          if (currentLockedValue !== state) {
+            await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).click();
+            try {
+              await actionContent.locator('div.ControlLightDropList-WidgetLightDropList-rowinactive').getByText(state).click();
+            } catch {
+              await actionContent.locator('div.ControlLightDropList-WidgetLightDropList-rowinactive').getByText(state).nth(1).click();
+            }
+          } else {
+            console.log(`${device.name} already ${state}`);
           }
-        } else {
-          console.log(`${device.name} already ${state}`);
+        }catch(err){
+          console.log(`${device.name} command failed`)
         }
       },
 

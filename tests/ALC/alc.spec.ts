@@ -58,17 +58,17 @@ test('check faults', async ({actionContent}) =>{
 })
 test.describe('low voltage', () => {
 	test.describe.configure({ mode: 'serial' });
-	// test.beforeAll(async ({page, deviceUtils})=>{
-	// 	await page.waitForTimeout(5000)
-	// 	await deviceUtils.commandBinaryDevice(fill, "Close");
-	// 	await deviceUtils.commandBinaryDevice(drain, "Close");
-	// 	await deviceUtils.commandBinaryDevice(bleed, "Off");
-	// 	await deviceUtils.commandBinaryDevice(sump, "Off");
-	// 	await deviceUtils.commandBinaryDevice(vfdEnable, "Disable");
-	// 	await deviceUtils.commandAnalogDevice(vfd, 0);
-	// 	await deviceUtils.commandAnalogDevice(faceDamper, 20);
-	// 	await deviceUtils.commandAnalogDevice(bypassDamper, 100);
-	// })
+	test.beforeAll(async ({page, deviceUtils})=>{
+		await page.waitForTimeout(5000)
+		await deviceUtils.commandBinaryDevice(fill, "Close");
+		await deviceUtils.commandBinaryDevice(drain, "Close");
+		await deviceUtils.commandBinaryDevice(bleed, "Off");
+		await deviceUtils.commandBinaryDevice(sump, "Off");
+		await deviceUtils.commandBinaryDevice(vfdEnable, "Disable");
+		await deviceUtils.commandAnalogDevice(vfd, 0);
+		await deviceUtils.commandAnalogDevice(faceDamper, 20);
+		await deviceUtils.commandAnalogDevice(bypassDamper, 100);
+	})
 	test('mech gallery leak / mpdc', async ({deviceUtils}) => {
 		test.setTimeout(60000);
 		const mpdc = deviceUtils.testBinaryInput(leak1, 'Normal', 'Alarm');
