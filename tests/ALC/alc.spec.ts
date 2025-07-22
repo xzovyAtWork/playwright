@@ -222,7 +222,6 @@ test.describe('low voltage', () => {
 	test('whl', async () => {
 		await testBinaryInput(whl, 'Normal', 'Alarm');
 	})
-
 	test('ma temp', async ()=>{
 		await getAnalogFeedback(maTemp)
 	})
@@ -363,11 +362,10 @@ test.describe('motor section', async () => {
 		console.log(await getAirflowReading())
 		await testAnalogIO(vfd, 100);
 		await page.waitForTimeout(3000);
-		const airFlowReading = await getAirflowReading();
-		expect(airFlowReading).toBeGreaterThanOrEqual(45000);
+		expect(await getAirflowReading()).toBeGreaterThanOrEqual(45000);
 	})
 	test('run fans and test VFD enable', async () => {
-		test.setTimeout(31 * 60000)
+		test.setTimeout(0)
 		console.log('running fans for 30 minutes')
 		await page.waitForTimeout(30 * 60000);
 		await commandBinaryDevice(vfdEnable, 'Disable');
