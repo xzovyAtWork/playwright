@@ -34,7 +34,7 @@ async function commandAnalogDevice(device, value: number){
 	}
 }
 async function commandBinaryDevice(device, state){
-	const {lockedValue} = device
+	const {lockedValue, commandValue} = device
 	const currentLockedValue = await actionContent.locator("#bodyTable").locator(`[updateid="prim_${lockedValue}_ctrlid1"]`).locator('span').first().textContent();
 	try{
 
@@ -44,8 +44,9 @@ async function commandBinaryDevice(device, state){
 				await actionContent.locator('div.ControlLightDropList-WidgetLightDropList-rowinactive').getByText(state).click();
 			}catch(err){
 				await actionContent.locator('div.ControlLightDropList-WidgetLightDropList-rowinactive').getByText(state).nth(1).click();
+			}finally{
+				await expect(actionContent.locator("#bodyTable").locator(`[primid="prim_${commandValue}"]`)).toHaveText(state)
 			}
-			
 		}else{
 			console.log(`${device.name} already ${state}`)
 		}
@@ -142,7 +143,7 @@ test.afterAll(async () => {
 	await context.close();
 })
 test.beforeEach(async ({ }, testInfo) => {
-	console.log(`Started ${testInfo.title}...`);
+	console.log(`🔴 Started ${testInfo.title}...`);
 })
 test.afterEach(async ({ }, testInfo) => {
 	console.log(`✅ Completed test: ${testInfo.title}`);
@@ -168,14 +169,15 @@ test('download program', async ({ browser }) => {
 test('check faults', async () =>{
 	// test.describe.configure({retries: 3})
 	const rows = await actionContent.locator('#bodyTable').locator('tr')
-	for(let i = 0; i < 59; ++i){
+	for(let i = 0; i < 58; ++i){
 		let firstColumn = await actionContent.locator('#bodyTable').locator('tr').nth(i).locator('td').first().locator('span')
 		const color = await firstColumn.evaluate(el =>
 			window.getComputedStyle(el).getPropertyValue('color')
 		  );
 		  
-		if(color == 'rgb(255, 0, 0)'){			
+		if(color == 'rgb(255, 0, 0)'){
 			console.log(`${await firstColumn.textContent()} faulted`)
+			expect(true).toBe(false)			
 		}
 	}	
 })
